@@ -84,7 +84,7 @@ app.frame('/', async (c) => {
     intents: [
       status !== 'response' && <Button value="yes">Yes</Button>,
       status !== 'response' && <Button value="no">No</Button>,
-      choice !== 'viewPositions' && (
+      (choice === 'yes' || choice === 'no') && (
         <Button value="viewPositions">View Positions</Button>
       ),
       ,
