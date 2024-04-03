@@ -1,6 +1,6 @@
 ```
 npm install
-npm run dev
+vercel dev
 ```
 
 Head to http://localhost:5173/api
