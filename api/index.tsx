@@ -13,26 +13,33 @@ export const app = new Frog({
 })
 
 app.frame('/', async (c) => {
-  const { buttonValue, status } = c
+  const { buttonValue, status, frameData } = c
   const choice = buttonValue
   let yesCount = 0
   let noCount = 0
+  let hasFID = 0
 
-  if (choice) {
-    if (choice === 'yes') {
-      yesCount = (await kv.get('yes')) ?? 0
-      yesCount = yesCount + 1
-      await kv.set('yes', yesCount)
-      noCount = (await kv.get('no')) ?? 0
-    } else if (choice === 'no') {
-      noCount = (await kv.get('no')) ?? 0
-      noCount = noCount + 1
-      await kv.set('no', noCount)
-      yesCount = (await kv.get('yes')) ?? 0
-    } else {
-      noCount = (await kv.get('no')) ?? 0
-      yesCount = (await kv.get('yes')) ?? 0
+  if (choice && frameData) {
+    hasFID = await kv.sismember('fids', frameData.fid)
+    if (!hasFID) {
+      if (choice === 'yes') {
+        yesCount = (await kv.get('yes')) ?? 0
+        yesCount = yesCount + 1
+        await kv.set('yes', yesCount)
+        noCount = (await kv.get('no')) ?? 0
+        await kv.sadd('fids', frameData.fid)
+      } else if (choice === 'no') {
+        noCount = (await kv.get('no')) ?? 0
+        noCount = noCount + 1
+        await kv.set('no', noCount)
+        yesCount = (await kv.get('yes')) ?? 0
+        await kv.sadd('fids', frameData.fid)
+      } else {
+        noCount = (await kv.get('no')) ?? 0
+        yesCount = (await kv.get('yes')) ?? 0
+      }
     }
+    // Send to page they have already voted
   }
 
   return c.res({
@@ -69,7 +76,9 @@ app.frame('/', async (c) => {
           }}
         >
           {status === 'response' && choice !== 'viewPositions'
-            ? `You voted ${choice}.`
+            ? hasFID
+              ? `You have already voted`
+              : `You voted ${choice}.`
             : 'There will be over a 10,000 Kramer predictions before 5/29 midnight'}
           {status === 'response' && choice === 'viewPositions' && (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
